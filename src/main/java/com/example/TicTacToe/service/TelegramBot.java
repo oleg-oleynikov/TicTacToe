@@ -64,7 +64,6 @@ public class TelegramBot extends TelegramLongPollingBot {
     }
 
     public void searchPlayer(Long chatId) {
-//        log.info(chatId + " ищет соперника");
         synchronized (players) {
             if (!players.contains(chatId)) {
                 players.add(chatId);
