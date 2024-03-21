@@ -9,6 +9,8 @@ import org.telegram.telegrambots.bots.TelegramLongPollingBot;
 import org.telegram.telegrambots.meta.api.methods.send.SendMessage;
 import org.telegram.telegrambots.meta.api.objects.Message;
 import org.telegram.telegrambots.meta.api.objects.Update;
+import org.telegram.telegrambots.meta.api.objects.replykeyboard.InlineKeyboardMarkup;
+import org.telegram.telegrambots.meta.api.objects.replykeyboard.buttons.InlineKeyboardButton;
 import org.telegram.telegrambots.meta.exceptions.TelegramApiException;
 
 import java.util.*;
@@ -25,10 +27,16 @@ public class TelegramBot extends TelegramLongPollingBot {
     private final ExecutorService executorService = Executors.newCachedThreadPool();
     private final Queue<Long> players = new ConcurrentLinkedQueue<>();
     private final Map<Long, Game> games = new ConcurrentHashMap<>();
+//    private final CommandHandler handler;
 
+//    @Autowired
+//    public TelegramBot(BotConfig config, CommandHandler handler) {
+//        this.config = config;
+//        this.handler = handler;
+//    }
     @Autowired
-    public TelegramBot(BotConfig config) {
-        this.config = config;
+    public TelegramBot(BotConfig botConfig) {
+        this.config = botConfig;
     }
 
     @Override
@@ -38,9 +46,22 @@ public class TelegramBot extends TelegramLongPollingBot {
             Long chatId = message.getChatId();
 
             String textMessage = message.getText();
-
+            if("/help".equals(textMessage) || "/start".equals(textMessage)) {
+                sendMessage(chatId, "Добро пожаловать в игру крестики-нолики!\n" +
+                        "Это классическая игра, в которой два игрока ходят по очереди, " +
+                        "ставя свои символы (крестики и нолики) на игровое поле 3x3. " +
+                        "Цель игры - выстроить три своих символа в ряд по горизонтали, вертикали или диагонали." +
+                        "Вот список команд, которые вы можете использовать в игре:\n" +
+                        "\n" +
+                        "/help - Показывает это сообщение с описанием игры и доступных команд.\n" +
+                        "/search - Начинает новый поиск соперника.\n" +
+                        "/move <row> <column> - Делает ход, размещая символ на указанных координатах игрового поля. " +
+                        "Например, /move 1 2 разместит ваш символ в первой строке и втором столбце.\n" +
+                        "/endgame - Завершает текущую игру.");
+            }
 
             if ("/search".equals(textMessage)) {
+//                sendMessage(chatId, "");
                 searchPlayer(chatId);
             }
 
@@ -60,6 +81,9 @@ public class TelegramBot extends TelegramLongPollingBot {
                     }
                 });
             }
+
+            if("endgame".equals(textMessage)) {
+            }
         }
     }
 
@@ -69,6 +93,17 @@ public class TelegramBot extends TelegramLongPollingBot {
                 players.add(chatId);
 
                 sendMessage(chatId, "Поиск соперника...");
+
+                SendMessage sendMessage = new SendMessage();
+                sendMessage.setChatId(chatId.toString());
+                sendMessage.setText("  y  ");
+                sendMessage.setReplyMarkup(getKeybord());
+//        sendMessage.setParseMode("HTML");
+                try {
+                    execute(sendMessage);
+                } catch (TelegramApiException e) {
+                    log.error(e.getMessage());
+                }
             }
             checkMatchmaking();
         }
@@ -94,6 +129,7 @@ public class TelegramBot extends TelegramLongPollingBot {
 
     public void startGame(Game game) {
         sendMessage(game.getIdPlayerWalks(), "Игра началась. Ваш ход");
+        sendMessage(game.getIdPlayerWalks(), getBoardString(game));
         sendMessage(game.getIdPlayerNotWalks(), "Игра началась.");
     }
 
@@ -120,6 +156,52 @@ public class TelegramBot extends TelegramLongPollingBot {
         }
     }
 
+//    public String getBoardString(Game game) {
+//        StringBuilder sb = new StringBuilder();
+//        int[][] board = game.getBoard();
+//
+//        for(int i = 0; i < board.length; i++){
+//            for(int j = 0; j < board[i].length; j++){
+////                sb.append("<a href='/move ")
+////                        .append(i)
+////                        .append(" ")
+////                        .append(j)
+////                        .append("'>")
+////                        .append(getSymbolByNum(board[i][j]))
+////                        .append("</a>")
+////                        .append(" ");
+//                sb.append("[").append(getSymbolByNum(board[i][j])).append("]").append("(");
+//            }
+//        }
+//
+//        return sb.toString();
+//    }
+
+    public String getSymbolByNum(int num) {
+        return switch (num) {
+            case 0 -> "⭕";
+            case 1 -> "❌";
+            default -> "⬛";
+        };
+    }
+
+    public InlineKeyboardMarkup getKeybord(){
+        InlineKeyboardMarkup keyboardMarkup = new InlineKeyboardMarkup();
+        List<List<InlineKeyboardButton>> rows = new ArrayList<>();
+        for(int i = 1; i <= 4; i++){
+            List<InlineKeyboardButton> row = new ArrayList<>();
+            for(int j = 1; j <= 4; j++){
+                InlineKeyboardButton button = new InlineKeyboardButton();
+                button.setText(String.valueOf(i * j));
+                button.setCallbackData(i + " " + j);
+                row.add(button);
+            }
+            rows.add(row);
+        }
+        keyboardMarkup.setKeyboard(rows);
+        return keyboardMarkup;
+    }
+
     public String getBoardString(Game game) {
         StringBuilder sb = new StringBuilder();
         int[][] board = game.getBoard();
@@ -134,18 +216,18 @@ public class TelegramBot extends TelegramLongPollingBot {
         }
 //        sb.append("——————————");
         return sb.toString()
-//                .replace("0 ", "⭕\uFE0F")
-                .replace("0 ", " 0 ")
+                .replace("0 ", "⭕\uFE0F")
+//                .replace("0 ", " 0 ")
                 .replace("-1 ", "⬛\uFE0F")
-//                .replace("1 ", "❌");
-                .replace("1 ", " X ");
+                .replace("1 ", "❌");
+//                .replace("1 ", " X ");
     }
 
     public void sendMessage(Long chatId, String message) {
         SendMessage sendMessage = new SendMessage();
         sendMessage.setChatId(chatId.toString());
         sendMessage.setText(message);
-
+//        sendMessage.setParseMode("HTML");
         try {
             execute(sendMessage);
         } catch (TelegramApiException e) {
@@ -163,6 +245,22 @@ public class TelegramBot extends TelegramLongPollingBot {
             return new String[]{"Вы проиграли", "Вы победили"};
         else
             return new String[]{"Ничья", "Ничья"};
+    }
+
+    public void inAdvanceEndGame(Long chatId){
+        if(games.containsKey(chatId)) {
+            Game game = games.get(chatId);
+            Long firstChatId = game.getFirstChatIdPlayer();
+            Long secondChatId = game.getSecondChatIdPlayer();
+
+            games.remove(firstChatId);
+            games.remove(secondChatId);
+
+            sendMessage(firstChatId, "Игра была завершена досрочно.");
+            sendMessage(secondChatId, "Игра была завершена досрочно.");
+        } else {
+            sendMessage(chatId, "Вы должны находиться в игре для того чтобы заранее закончить");
+        }
     }
 
     @Override

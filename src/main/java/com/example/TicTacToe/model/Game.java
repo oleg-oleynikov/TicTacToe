@@ -1,10 +1,14 @@
 package com.example.TicTacToe.model;
 
+import lombok.AllArgsConstructor;
 import lombok.Data;
+import lombok.NoArgsConstructor;
 
 @Data
+@AllArgsConstructor
+@NoArgsConstructor
 public class Game {
-    private int[][] board = {
+    private final int[][] board = {
             {-1, -1, -1},
             {-1, -1, -1},
             {-1, -1, -1}
@@ -51,6 +55,18 @@ public class Game {
         }
 
         return null;
+    }
+
+    public boolean isBoardFull(){
+        for (int i = 0; i < 3; i++) {
+            for (int j = 0; j < 3; j++) {
+                if (board[i][j] == -1) {
+                    return false;
+                }
+            }
+        }
+
+        return true;
     }
 
     public boolean move(int x, int y){
