@@ -1,11 +1,13 @@
 package com.example.TicTacToe.service;
 
 import com.example.TicTacToe.model.Player;
+import org.springframework.stereotype.Service;
 
 import java.util.Optional;
 import java.util.Queue;
 import java.util.concurrent.ConcurrentLinkedQueue;
 
+@Service
 public class PlayerService {
     private final Queue<Player> players = new ConcurrentLinkedQueue<>();
 
@@ -24,5 +26,10 @@ public class PlayerService {
             }
 //            checkMatchmaking();
         }
+    }
+
+    public Long getGameMessageIdByChatId(Long chatId) {
+        Optional<Player> optionalPlayer = findPlayerByChatId(chatId);
+        return optionalPlayer.map(Player::getChatId).orElse(null);
     }
 }

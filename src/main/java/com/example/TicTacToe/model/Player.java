@@ -4,7 +4,11 @@ import lombok.AllArgsConstructor;
 import lombok.Data;
 
 @Data
-@AllArgsConstructor
 public class Player {
     private Long chatId;
+    private Long gameMessageId;
+
+    public Player(Long chatId) {
+        this.chatId = chatId;
+    }
 }
