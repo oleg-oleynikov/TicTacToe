@@ -6,9 +6,11 @@ import lombok.Data;
 @Data
 public class Player {
     private Long chatId;
-    private Long gameMessageId;
+    private Integer gameMessageId;
+    private StatusPlayer status;
 
     public Player(Long chatId) {
         this.chatId = chatId;
+        this.status = StatusPlayer.FREE;
     }
 }

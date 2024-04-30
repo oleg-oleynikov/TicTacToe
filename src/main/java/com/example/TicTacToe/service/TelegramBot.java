@@ -1,23 +1,19 @@
 package com.example.TicTacToe.service;
 
 import com.example.TicTacToe.config.BotConfig;
-import com.example.TicTacToe.model.Game;
 import com.example.TicTacToe.util.CommandHandler;
 import com.example.TicTacToe.util.MessageSender;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 import org.telegram.telegrambots.bots.TelegramLongPollingBot;
+import org.telegram.telegrambots.meta.api.methods.AnswerCallbackQuery;
 import org.telegram.telegrambots.meta.api.methods.send.SendMessage;
+import org.telegram.telegrambots.meta.api.methods.updatingmessages.EditMessageText;
 import org.telegram.telegrambots.meta.api.objects.Message;
 import org.telegram.telegrambots.meta.api.objects.Update;
-import org.telegram.telegrambots.meta.api.objects.replykeyboard.InlineKeyboardMarkup;
-import org.telegram.telegrambots.meta.api.objects.replykeyboard.buttons.InlineKeyboardButton;
 import org.telegram.telegrambots.meta.exceptions.TelegramApiException;
 
-import java.util.*;
-import java.util.concurrent.ConcurrentHashMap;
-import java.util.concurrent.ConcurrentLinkedQueue;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
@@ -29,11 +25,6 @@ public class TelegramBot extends TelegramLongPollingBot implements MessageSender
     private final ExecutorService executorService = Executors.newCachedThreadPool();
     private final CommandHandler handler;
 
-//    @Autowired
-//    public TelegramBot(BotConfig config, CommandHandler handler) {
-//        this.config = config;
-//        this.handler = handler;
-//    }
     @Autowired
     public TelegramBot(BotConfig botConfig, CommandHandler handler) {
         this.config = botConfig;
@@ -43,6 +34,9 @@ public class TelegramBot extends TelegramLongPollingBot implements MessageSender
 
     @Override
     public void onUpdateReceived(Update update) {
+        if(update.hasCallbackQuery()){
+            handler.handleCallback(update);
+        }
         if (update.hasMessage() && update.getMessage().hasText()) {
             Message message = update.getMessage();
             String messageText = message.getText();
@@ -99,75 +93,6 @@ public class TelegramBot extends TelegramLongPollingBot implements MessageSender
         }
     }
 
-//    public void searchPlayer(Long chatId) {
-//        synchronized (players) {
-//            if (!players.contains(chatId)) {
-//                players.add(chatId);
-//
-//                sendMessage(chatId, "Поиск соперника...");
-//
-//                SendMessage sendMessage = new SendMessage();
-//                sendMessage.setChatId(chatId.toString());
-//                sendMessage.setText("  y  ");
-//                sendMessage.setReplyMarkup(getKeybord());
-////        sendMessage.setParseMode("HTML");
-//                try {
-//                    execute(sendMessage);
-//                } catch (TelegramApiException e) {
-//                    log.error(e.getMessage());
-//                }
-//            }
-//            checkMatchmaking();
-//        }
-//    }
-
-//    public void checkMatchmaking() {
-//        synchronized (players) {
-//            while(players.size() >= 2) {
-//                Game game = new Game();
-//                game.setFirstChatIdPlayer(players.poll());
-//                game.setSecondChatIdPlayer(players.poll());
-//
-//                games.put(game.getFirstChatIdPlayer(), game);
-//                games.put(game.getSecondChatIdPlayer(), game);
-//
-//                sendMessage(game.getFirstChatIdPlayer(), "Соперник найден");
-//                sendMessage(game.getSecondChatIdPlayer(), "Соперник найден");
-//
-//                startGame(game);
-//            }
-//        }
-//    }
-
-//    public void startGame(Game game) {
-//        sendMessage(game.getIdPlayerWalks(), "Игра началась. Ваш ход");
-//        sendMessage(game.getIdPlayerWalks(), getBoardString(game));
-//        sendMessage(game.getIdPlayerNotWalks(), "Игра началась.");
-//    }
-
-//    public void playerMove(Long chatId, int x, int y) {
-//        if (games.containsKey(chatId) && (x >= 0 && x < 3) && (y >= 0 && y < 3)){
-//            Game game = games.get(chatId);
-//            if(game.getIdPlayerWalks().equals(chatId)) {
-//                if(game.move(x, y)) {
-//                    sendMessage(game.getIdPlayerWalks(), getBoardString(game));
-//                    sendMessage(game.getIdPlayerNotWalks(), getBoardString(game));
-//                }
-//
-//                if(game.checkWin() != null) {
-//                    String[] arrMessage = endGame(game);
-//                    sendMessage(game.getFirstChatIdPlayer(), arrMessage[0]);
-//                    sendMessage(game.getSecondChatIdPlayer(), arrMessage[1]);
-//
-//                    synchronized (games) {
-//                        games.remove(game.getFirstChatIdPlayer());
-//                        games.remove(game.getSecondChatIdPlayer());
-//                    }
-//                }
-//            }
-//        }
-//    }
-
 //    public String getBoardString(Game game) {
 //        StringBuilder sb = new StringBuilder();
 //        int[][] board = game.getBoard();
@@ -197,23 +122,7 @@ public class TelegramBot extends TelegramLongPollingBot implements MessageSender
 //        };
 //    }
 
-//    public InlineKeyboardMarkup getKeybord(){
-//        InlineKeyboardMarkup keyboardMarkup = new InlineKeyboardMarkup();
-//        List<List<InlineKeyboardButton>> rows = new ArrayList<>();
-//        for(int i = 1; i <= 4; i++){
-//            List<InlineKeyboardButton> row = new ArrayList<>();
-//            for(int j = 1; j <= 4; j++){
-//                InlineKeyboardButton button = new InlineKeyboardButton();
-//                button.setText(String.valueOf(i * j));
-//                button.setCallbackData(i + " " + j);
-//                row.add(button);
-//            }
-//            rows.add(row);
-//        }
-//        keyboardMarkup.setKeyboard(rows);
-//        return keyboardMarkup;
-//    }
-//
+
 //    public String getBoardString(Game game) {
 //        StringBuilder sb = new StringBuilder();
 //        int[][] board = game.getBoard();
@@ -235,50 +144,37 @@ public class TelegramBot extends TelegramLongPollingBot implements MessageSender
 ////                .replace("1 ", " X ");
 //    }
 
-//    public void sendMessage(Long chatId, String message) {
-//        SendMessage sendMessage = new SendMessage();
-//        sendMessage.setChatId(chatId.toString());
-//        sendMessage.setText(message);
-////        sendMessage.setParseMode("HTML");
-//        try {
-//            execute(sendMessage);
-//        } catch (TelegramApiException e) {
-//            log.error(e.getMessage());
-//        }
-//    }
-//
-//    public String[] endGame(Game game){
-//        Long resultGame = game.checkWin();
-//        Long firstGhatId = game.getFirstChatIdPlayer();
-//        Long secondChatId = game.getSecondChatIdPlayer();
-//        if(resultGame.equals(firstGhatId))
-//            return new String[]{"Вы выйграли", "Вы проиграли"};
-//        else if (resultGame.equals(secondChatId))
-//            return new String[]{"Вы проиграли", "Вы победили"};
-//        else
-//            return new String[]{"Ничья", "Ничья"};
-//    }
-//
-//    public void inAdvanceEndGame(Long chatId){
-//        if(games.containsKey(chatId)) {
-//            Game game = games.get(chatId);
-//            Long firstChatId = game.getFirstChatIdPlayer();
-//            Long secondChatId = game.getSecondChatIdPlayer();
-//
-//            games.remove(firstChatId);
-//            games.remove(secondChatId);
-//
-//            sendMessage(firstChatId, "Игра была завершена досрочно.");
-//            sendMessage(secondChatId, "Игра была завершена досрочно.");
-//        } else {
-//            sendMessage(chatId, "Вы должны находиться в игре для того чтобы заранее закончить");
-//        }
-//    }
+
 
     @Override
-    public void sendMessage(SendMessage message) {
-
+    public Message sendMessage(SendMessage sendMessage) {
+        Message message = null;
+        try {
+            message = execute(sendMessage);
+        } catch (TelegramApiException exception){
+            log.error(exception.getMessage());
+        }
+        return message;
     }
+
+    @Override
+    public void sendAnswerCallback(AnswerCallbackQuery answer) {
+        try {
+            execute(answer);
+        } catch (TelegramApiException exception){
+            log.error(exception.getMessage());
+        }
+    }
+
+    @Override
+    public void sendEditMessage(EditMessageText editMessageText) {
+        try {
+            execute(editMessageText);
+        } catch (TelegramApiException exception){
+            log.error(exception.getMessage());
+        }
+    }
+
 
     @Override
     public String getBotUsername() {
