@@ -1,6 +1,5 @@
 package com.example.TicTacToe.model;
 
-import lombok.AllArgsConstructor;
 import lombok.Data;
 
 @Data

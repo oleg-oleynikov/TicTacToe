@@ -39,6 +39,21 @@ public class GameState {
         return null;
     }
 
+    public String[][] getBoard(){
+        int[][] board = game.getBoard();
+        String[][] sBoard = new String[3][3];
+        for(int i = 0; i < sBoard.length; i++) {
+            for(int j = 0; j < sBoard[i].length; j++){
+                sBoard[i][j] = switch (board[i][j]) {
+                    case 0 -> "⭕";
+                    case 1 -> "❌";
+                    default -> "⬛";
+                };
+            }
+        }
+        return sBoard;
+    }
+
     public boolean isBoardFull(){
         int[][] board = game.getBoard();
         for (int[] row : board) {
@@ -60,5 +75,9 @@ public class GameState {
 
     public Player[] getPlayers(){
         return new Player[]{game.getFirstPlayer(), game.getSecondPlayer()};
+    }
+
+    public Game getGame(){
+        return game;
     }
 }

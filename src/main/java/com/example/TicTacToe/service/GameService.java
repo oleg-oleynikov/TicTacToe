@@ -16,9 +16,6 @@ import java.util.List;
 @Service
 public class GameService {
     private List<GameState> games = new ArrayList<>();
-
-    @Setter
-    private CommandHandler commandHandler;
     private PlayerService playerService;
 
     @Autowired
@@ -37,8 +34,7 @@ public class GameService {
         GameState gameState = getGameStateByChatId(chatId);
         Player player = playerService.findPlayerByChatId(chatId).orElse(null);
         if(player != null && gameState.isPlayerMove(player)){
-            // commandHandler.getMessageSender().sendMessage(commandHandler.createSendMessage(chatId, "Такой ход сделать нельзя"));
-            return gameState.makeMove(x, y);
+            return gameState.makeMove(x - 1, y - 1);
         }
         return false;
     }
@@ -51,5 +47,16 @@ public class GameService {
         GameState newGameState = new GameState(new Game(firstPlayer, secondPlayer));
         games.add(newGameState);
         return newGameState;
+    }
+
+    public Player getAnotherPlayer(Long chatId){
+        GameState gameState = getGameStateByChatId(chatId);
+        Player firstPlayer = gameState.getPlayers()[0];
+        Player secondPlayer = gameState.getPlayers()[1];
+        return firstPlayer.getChatId().equals(chatId) ? secondPlayer : firstPlayer;
+    }
+
+    public void removeGameState(GameState gameState) {
+        games.remove(gameState);
     }
 }

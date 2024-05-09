@@ -14,6 +14,7 @@ import java.util.stream.Collectors;
 
 @Service
 public class PlayerService {
+
     private final Queue<Player> players = new ConcurrentLinkedQueue<>();
 
     @Setter
@@ -25,12 +26,13 @@ public class PlayerService {
                 .findAny();
     }
 
-    public List<Player> addPlayer(Long chatId) {
+    public Player addPlayer(Long chatId) {
         synchronized (players) {
+            Player player = new Player(chatId);
             if (findPlayerByChatId(chatId).isEmpty()) {
-                players.add(new Player(chatId));
+                players.add(player);
             }
-            return checkMatchmaking();
+            return player;
         }
     }
 
@@ -38,15 +40,10 @@ public class PlayerService {
         return players.stream().filter(p -> p.getChatId().equals(chatId)).findFirst().orElse(null);
     }
 
-    private List<Player> checkMatchmaking() {
+    public List<Player> checkMatchmaking() {
         return players.stream()
-                .filter(player -> player.getStatus().equals(StatusPlayer.FREE))
+                .filter(player -> player.getStatus().equals(StatusPlayer.IN_SEARCH))
                 .limit(2)
                 .collect(Collectors.toList());
-    }
-
-    public Integer getGameMessageIdByChatId(Long chatId) {
-        Optional<Player> optionalPlayer = findPlayerByChatId(chatId);
-        return optionalPlayer.map(Player::getGameMessageId).orElse(null);
     }
 }

@@ -1,8 +1,6 @@
 package com.example.TicTacToe.model;
 
-import lombok.AllArgsConstructor;
 import lombok.Data;
-import lombok.NoArgsConstructor;
 
 @Data
 public class Game {
@@ -29,16 +27,8 @@ public class Game {
         return true;
     }
 
-    public boolean isPlayerMove(Long chatId){
-        return (playerMove == 0 && chatId.equals(firstPlayer.getChatId())) ||
-                (playerMove == 1 && chatId.equals(secondPlayer.getChatId()));
-    }
-
-//    public Long getIdPlayerWalks(){
-//        return playerMove == 0 ? firstChatIdPlayer : secondChatIdPlayer;
-//    }
-//
-//    public Long getIdPlayerNotWalks(){
-//        return playerMove == 0 ? secondChatIdPlayer : firstChatIdPlayer;
+//    public boolean isPlayerMove(Long chatId){
+//        return (playerMove == 0 && chatId.equals(firstPlayer.getChatId())) ||
+//                (playerMove == 1 && chatId.equals(secondPlayer.getChatId()));
 //    }
 }
