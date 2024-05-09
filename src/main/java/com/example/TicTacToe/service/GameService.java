@@ -4,8 +4,6 @@ import com.example.TicTacToe.model.Game;
 import com.example.TicTacToe.model.GameState;
 import com.example.TicTacToe.model.Player;
 import com.example.TicTacToe.model.StatusPlayer;
-import com.example.TicTacToe.util.CommandHandler;
-import lombok.Setter;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 

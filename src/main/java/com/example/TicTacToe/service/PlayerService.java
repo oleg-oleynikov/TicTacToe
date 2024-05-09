@@ -17,9 +17,6 @@ public class PlayerService {
 
     private final Queue<Player> players = new ConcurrentLinkedQueue<>();
 
-    @Setter
-    private CommandHandler commandHandler;
-
     public Optional<Player> findPlayerByChatId(Long chatId) {
         return players.stream()
                 .filter(player -> player.getChatId().equals(chatId))

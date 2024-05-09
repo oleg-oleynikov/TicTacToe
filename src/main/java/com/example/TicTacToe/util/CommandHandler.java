@@ -34,7 +34,6 @@ public class CommandHandler {
     public CommandHandler(PlayerService playerService, GameService gameService) {
         this.playerService = playerService;
         this.gameService = gameService;
-        this.playerService.setCommandHandler(this);
     }
 
     public void handleHelpCommand(Message message){
